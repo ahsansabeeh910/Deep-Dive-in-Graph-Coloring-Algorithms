@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Greedy Graph Coloring Workbench | JIIT Advanced Algorithms Lab</title>
+  <style>
+    :root {
+      --primary: #1f4e79;
+      --primary-light: #e8f1f8;
+      --accent: #2e8b57;
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --border: #d4dce6;
+      --text: #1c2530;
+      --muted: #5a6878;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    header h1 { font-size: 1.25rem; font-weight: 600; }
+    header span { font-size: 0.85rem; opacity: 0.9; }
+    .container {
+      max-width: 1280px;
+      margin: 18px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      gap: 18px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card h2 {
+      font-size: 1.02rem;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .form-group select, .form-group input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+    .btn {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #163a5c; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat-box {
+      background: var(--primary-light);
+      border: 1px solid #c5d9ed;
+      border-radius: 6px;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    .stat-box .label { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+    .stat-box .value { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: center;
+    }
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    tr:nth-child(even) { background: #f8fafd; }
+    .badge-ok {
+      background: #d4edda;
+      color: #155724;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+    .best-row { background: #eaf7ee !important; font-weight: 600; }
+    .viz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .algo-tabs { display: flex; gap: 6px; }
+    .tab-btn {
+      padding: 5px 11px;
+      border: 1px solid var(--primary);
+      background: #fff;
+      color: var(--primary);
+      border-radius: 5px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    canvas {
+      width: 100%;
+      height: 360px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fcfdff;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Experimental Analysis & Optimization of Greedy Graph Coloring Algorithms</h1>
+    <span>Advanced Algorithms Lab [17M15CS111] | JIIT Noida</span>
+  </header>
+
+  <div class="container">
+    <!-- Left Control Panel -->
+    <div class="card">
+      <h2>1. Graph Configuration</h2>
+      <div class="form-group">
+        <label for="graphType">Graph Family / Source</label>
+        <select id="graphType" onchange="toggleControls()">
+          <option value="dimacs">DIMACS Benchmark (.col)</option>
+          <option value="erdos_renyi" selected>Erdős–Rényi Random G(n, p)</option>
+          <option value="barabasi_albert">Barabási–Albert Scale-Free BA(n, m)</option>
+          <option value="random_geometric">Random Geometric RGG(n, r)</option>
+          <option value="cycle">Cycle Graph C_n</option>
+          <option value="complete">Complete Graph K_n</option>
+          <option value="crown">Bipartite Crown Graph</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="dimacsGroup" style="display:none;">
+        <label for="dimacsName">DIMACS Benchmark Instance</label>
+        <select id="dimacsName">
+          <option value="myciel3">myciel3 (n=11, m=20, χ=4)</option>
+          <option value="queen5_5">queen5_5 (n=25, m=160, χ=5)</option>
+          <option value="myciel5">myciel5 (n=47, m=236, χ=6)</option>
+          <option value="queen8_8">queen8_8 (n=64, m=728, χ=9)</option>
+          <option value="huck">huck (n=74, m=301, χ=11)</option>
+          <option value="jean">jean (n=80, m=254, χ=10)</option>
+          <option value="anna">anna (n=138, m=493, χ=11)</option>
+          <option value="le450_15a">le450_15a (n=450, m=8168, χ=15)</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="nGroup">
+        <label for="numVertices">Number of Vertices (n)</label>
+        <input type="number" id="numVertices" value="24" min="4" max="500" />
+      </div>
+
+      <div class="form-group" id="paramGroup">
+        <label for="paramVal" id="paramLabel">Edge Probability (p)</label>
+        <input type="number" id="paramVal" value="0.25" step="0.05" min="0.05" max="20" />
+      </div>
+
+      <div class="form-group">
+        <label for="seedVal">Random Tie-Breaking Seed</label>
+        <input type="number" id="seedVal" value="0" min="0" max="999" />
+      </div>
+
+      <button class="btn" onclick="runComparison()">Run All 4 Coloring Algorithms</button>
+
+      <div style="margin-top: 16px; font-size: 0.82rem; color: var(--muted);">
+        <strong>Implemented Pipeline:</strong>
+        <ul style="margin-left: 16px; margin-top: 4px;">
+          <li>Basic Greedy (First-Fit, O(n + m))</li>
+          <li>Welsh-Powell (Degree Order, O(n log n + m))</li>
+          <li>Standard DSATUR (Lazy Binary Heap)</li>
+          <li>Improved DSATUR (Clique LB + Degree/Domination Reduction + Sewell Tie-Break)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right Results & Canvas Visualization Panel -->
+    <div class="card">
+      <h2>2. Live Algorithmic Comparison & Colored Graph Visualization</h2>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="label">Graph Instance</div>
+          <div class="value" id="statName">-</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Vertices (n) / Edges (m)</div>
+          <div class="value" id="statNM">-</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Density / Max Deg (Δ)</div>
+          <div class="value" id="statDens">-</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Clique LB (ω_g) / Known χ</div>
+          <div class="value" id="statBounds">-</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Algorithm</th>
+            <th>Colors Used (k)</th>
+            <th>Approx Ratio</th>
+            <th>Relative Gain (%)</th>
+            <th>Runtime (ms)</th>
+            <th>Peak Memory (KB)</th>
+            <th>Proper Coloring?</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr><td colspan="7">Loading benchmark comparison...</td></tr>
+        </tbody>
+      </table>
+
+      <div class="viz-header">
+        <strong style="font-size: 0.92rem; color: var(--primary);">Interactive Colored Graph Canvas (Click tab to switch algorithm coloring):</strong>
+        <div class="algo-tabs">
+          <button class="tab-btn" onclick="selectAlgo('Basic Greedy')">Basic Greedy</button>
+          <button class="tab-btn" onclick="selectAlgo('Welsh-Powell')">Welsh-Powell</button>
+          <button class="tab-btn" onclick="selectAlgo('DSATUR')">DSATUR</button>
+          <button class="tab-btn active" onclick="selectAlgo('Improved DSATUR')">Improved DSATUR</button>
+        </div>
+      </div>
+      <canvas id="graphCanvas" width="880" height="360"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const PALETTE = [
+      "#e63946", "#2a9d8f", "#457b9d", "#f4a261", "#8338ec",
+      "#06d6a0", "#ff006e", "#fb5607", "#3a86ff", "#ffbe0b",
+      "#118ab2", "#6a994e", "#bc4749", "#9b5de5", "#00bbf9"
+    ];
+    let currentData = null;
+    let activeAlgo = "Improved DSATUR";
+
+    function toggleControls() {
+      const gtype = document.getElementById("graphType").value;
+      const dimacsGrp = document.getElementById("dimacsGroup");
+      const nGrp = document.getElementById("nGroup");
+      const pGrp = document.getElementById("paramGroup");
+      const pLabel = document.getElementById("paramLabel");
+      const pInput = document.getElementById("paramVal");
+
+      if (gtype === "dimacs") {
+        dimacsGrp.style.display = "block";
+        nGrp.style.display = "none";
+        pGrp.style.display = "none";
+      } else {
+        dimacsGrp.style.display = "none";
+        nGrp.style.display = "block";
+        if (gtype === "erdos_renyi") {
+          pGrp.style.display = "block";
+          pLabel.textContent = "Edge Probability (p)";
+          pInput.value = "0.25";
+          pInput.step = "0.05";
+        } else if (gtype === "barabasi_albert") {
+          pGrp.style.display = "block";
+          pLabel.textContent = "Attachment Edges (m)";
+          pInput.value = "2";
+          pInput.step = "1";
+        } else if (gtype === "random_geometric") {
+          pGrp.style.display = "block";
+          pLabel.textContent = "Distance Radius (r)";
+          pInput.value = "0.28";
+          pInput.step = "0.05";
+        } else {
+          pGrp.style.display = "none";
+        }
+      }
+    }
+
+    async function runComparison() {
+      const payload = {
+        graph_type: document.getElementById("graphType").value,
+        dimacs_name: document.getElementById("dimacsName").value,
+        n: parseInt(document.getElementById("numVertices").value || "24", 10),
+        param: parseFloat(document.getElementById("paramVal").value || "0.25"),
+        seed: parseInt(document.getElementById("seedVal").value || "0", 10)
+      };
+
+      const res = await fetch("/api/color", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      currentData = await res.json();
+      renderSummary();
+      drawGraph();
+    }
+
+    function renderSummary() {
+      if (!currentData) return;
+      const g = currentData.graph;
+      document.getElementById("statName").textContent = g.name;
+      document.getElementById("statNM").textContent = `${g.n} / ${g.m}`;
+      document.getElementById("statDens").textContent = `${g.density} / Δ=${g.max_degree}`;
+      document.getElementById("statBounds").textContent =
+        `ω_g=${g.omega_lb} / χ=${g.known_chi !== null ? g.known_chi : "?"}`;
+
+      const minColors = Math.min(...currentData.results.map(r => r.colors));
+      const tbody = document.getElementById("resultsBody");
+      tbody.innerHTML = "";
+
+      for (const row of currentData.results) {
+        const tr = document.createElement("tr");
+        if (row.colors === minColors) tr.className = "best-row";
+        tr.innerHTML = `
+          <td>${row.algorithm}</td>
+          <td><strong>${row.colors}</strong></td>
+          <td>${row.approx_ratio.toFixed(3)}</td>
+          <td>${row.gain_pct.toFixed(2)}%</td>
+          <td>${row.time_ms.toFixed(3)} ms</td>
+          <td>${row.memory_kb.toFixed(2)} KB</td>
+          <td><span class="badge-ok">${row.proper ? "✓ Proper (0 Conflicts)" : "✗ Invalid"}</span></td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function selectAlgo(algoName) {
+      activeAlgo = algoName;
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.textContent === algoName);
+      });
+      drawGraph();
+    }
+
+    function drawGraph() {
+      const canvas = document.getElementById("graphCanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!currentData || !currentData.nodes || currentData.nodes.length === 0) {
+        ctx.fillStyle = "#5a6878";
+        ctx.font = "15px Segoe UI";
+        ctx.textAlign = "center";
+        ctx.fillText("Graph has > 150 vertices; canvas rendering skipped for visual clarity.", canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      const nodes = currentData.nodes;
+      const edges = currentData.edges;
+      const colors = currentData.colorings[activeAlgo] || [];
+      const W = canvas.width;
+      const H = canvas.height;
+
+      // Draw edges
+      ctx.strokeStyle = "rgba(120, 138, 160, 0.45)";
+      ctx.lineWidth = nodes.length > 60 ? 0.8 : 1.3;
+      for (const [u, v] of edges) {
+        const nu = nodes[u];
+        const nv = nodes[v];
+        ctx.beginPath();
+        ctx.moveTo(nu.x * W, nu.y * H);
+        ctx.lineTo(nv.x * W, nv.y * H);
+        ctx.stroke();
+      }
+
+      // Draw vertices with their assigned color class
+      const radius = nodes.length > 70 ? 6 : (nodes.length > 35 ? 9 : 13);
+      for (const node of nodes) {
+        const x = node.x * W;
+        const y = node.y * H;
+        const cIdx = colors[node.id] ?? 0;
+        const fill = PALETTE[cIdx % PALETTE.length];
+
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = "#1c2530";
+        ctx.stroke();
+
+        if (nodes.length <= 45) {
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 10px Segoe UI";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`c${cIdx}`, x, y);
+        }
+      }
+
+      // Legend overlay
+      const algoRes = currentData.results.find(r => r.algorithm === activeAlgo);
+      ctx.fillStyle = "#1f4e79";
+      ctx.font = "bold 13px Segoe UI";
+      ctx.textAlign = "left";
+      ctx.fillText(`${activeAlgo} — Colors Used (k) = ${algoRes ? algoRes.colors : "-"}`, 14, 22);
+    }
+
+    window.onload = () => {
+      toggleControls();
+      runComparison();
+    };
+  </script>
+</body>
+</html>
